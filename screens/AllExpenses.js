@@ -1,12 +1,9 @@
-import { StyleSheet, Text, View } from "react-native";
+import { StyleSheet, Text, View, Button } from "react-native";
 import React from "react";
+import ExpensesOutput from "../components/ExpensesOutput/ExpensesOutput";
 
-const AllExpenses = () => {
-  return (
-    <View>
-      <Text>AllExpenses</Text>
-    </View>
-  );
+const AllExpenses = ({ navigation }) => {
+  return <ExpensesOutput expensesPeriod="Total"/>
 };
 
 export default AllExpenses;
