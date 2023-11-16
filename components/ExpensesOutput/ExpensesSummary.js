@@ -3,14 +3,14 @@ import React from "react";
 import { GlobalStyles } from '../../constants/styles'
 
 const ExpensesSummary = ({ periodName, expenses }) => {
-  const expensesSum = expenses.reduce((sum, expense) => {
+  const expensesSum = expenses?.reduce((sum, expense) => {
     return sum + expense.amount;
   }, 0);
 
   return (
     <View style={styles.periodName}>
       <Text style={styles.periodNameText}>{periodName}</Text>
-      <Text style={styles.amount}>£{expensesSum.toFixed(2)}</Text>
+      <Text style={styles.amount}>£{expensesSum?.toFixed(2)}</Text>
     </View>
   );
 };
