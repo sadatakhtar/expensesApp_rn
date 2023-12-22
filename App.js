@@ -1,6 +1,6 @@
 import { StatusBar } from "expo-status-bar";
-import { StyleSheet, Text, View } from "react-native";
-import { NavigationContainer } from "@react-navigation/native";
+import { StyleSheet, Text, View, useColorScheme } from "react-native";
+import { DarkTheme, NavigationContainer, DefaultTheme } from "@react-navigation/native";
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
 import RecentExpenses from "./screens/RecentExpenses";
@@ -60,11 +60,23 @@ function ExpensesOverview({ navigation }) {
 }
 
 export default function App() {
+  const scheme = useColorScheme()
+  console.log(scheme)
+
+  const myTheme = {
+    ...DefaultTheme,
+    colors: {
+      ...DefaultTheme.colors,
+      primary: 'orange',
+      background: 'red',
+      text: 'green'
+    }
+  }
   return (
     <>
       <StatusBar style="light" />
       <ExpensesContextProvider>
-        <NavigationContainer>
+        <NavigationContainer theme={scheme === 'dark' ? DarkTheme : myTheme}>
           <Stack.Navigator
             screenOptions={{
               headerStyle: { backgroundColor: GlobalStyles.colors.primary500 },

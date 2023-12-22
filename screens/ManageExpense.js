@@ -1,13 +1,15 @@
 import { StyleSheet, Text, TextInput, View } from "react-native";
-import React, { useLayoutEffect, useContext } from "react";
+import React, {useState, useLayoutEffect, useContext } from "react";
 import IconButton from "../components/UI/IconButton";
 import { GlobalStyles } from "../constants/styles";
 import Button from "../components/UI/Button";
 import { ExpensesContext } from "../store/expenses-context";
 import ExpenseForm from "../components/ManageExpense/ExpenseForm";
-import { storeExpenses } from "../utils/http";
+import { storeExpenses, updateExpense, deleteExpense } from "../utils/http";
+import Loading from "../components/UI/Loading";
 
 const ManageExpense = ({ route, navigation }) => {
+  const [isFetching, setIsFetching] = useState(true);
   const expensesCtx = useContext(ExpensesContext);
 
   const editedExpenseId = route.params?.expenseId;
@@ -18,13 +20,18 @@ const ManageExpense = ({ route, navigation }) => {
   );
 
   useLayoutEffect(() => {
+    setIsFetching(true);
     navigation.setOptions({
       title: isEditing ? "Edit Expense" : "Add New Expense",
     });
+    setIsFetching(false);
   }, [navigation, isEditing]);
 
-  function deleteExpenseHandler() {
+  async function deleteExpenseHandler() {
+    setIsFetching(true)
+    await deleteExpense(editedExpenseId);
     expensesCtx.deleteExpense(editedExpenseId);
+    setIsFetching(false);
     navigation.goBack();
   }
 
@@ -32,14 +39,23 @@ const ManageExpense = ({ route, navigation }) => {
     navigation.goBack();
   }
 
-  function confirmHandler(expenseData) {
+  async function confirmHandler(expenseData) {
     if (isEditing) {
+      setIsFetching(true);
       expensesCtx.updateExpense(editedExpenseId, expenseData);
+      await updateExpense(editedExpenseId, expenseData);
+      setIsFetching(false)
     } else {
-      storeExpenses(expenseData);
-      expensesCtx.addExpense(expenseData);
+      setIsFetching(true);
+      const id = await storeExpenses(expenseData);
+      expensesCtx.addExpense({...expenseData, id: id});
+      setIsFetching(false);
     }
     navigation.goBack();
+  }
+
+  if(isFetching) {
+    return  <Loading />
   }
 
   return (
