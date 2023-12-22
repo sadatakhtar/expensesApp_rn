@@ -1,5 +1,5 @@
 import { StyleSheet, Text, TextInput, View } from "react-native";
-import React, {useState, useLayoutEffect, useContext } from "react";
+import React, { useState, useLayoutEffect, useContext } from "react";
 import IconButton from "../components/UI/IconButton";
 import { GlobalStyles } from "../constants/styles";
 import Button from "../components/UI/Button";
@@ -7,9 +7,12 @@ import { ExpensesContext } from "../store/expenses-context";
 import ExpenseForm from "../components/ManageExpense/ExpenseForm";
 import { storeExpenses, updateExpense, deleteExpense } from "../utils/http";
 import Loading from "../components/UI/Loading";
+import ErrorOverlay from "../components/UI/ErrorOverlay";
 
 const ManageExpense = ({ route, navigation }) => {
   const [isFetching, setIsFetching] = useState(true);
+  const [error, setError] = useState();
+
   const expensesCtx = useContext(ExpensesContext);
 
   const editedExpenseId = route.params?.expenseId;
@@ -28,11 +31,18 @@ const ManageExpense = ({ route, navigation }) => {
   }, [navigation, isEditing]);
 
   async function deleteExpenseHandler() {
-    setIsFetching(true)
-    await deleteExpense(editedExpenseId);
-    expensesCtx.deleteExpense(editedExpenseId);
-    setIsFetching(false);
-    navigation.goBack();
+    setIsFetching(true);
+    try {
+      await deleteExpense(editedExpenseId);
+      expensesCtx.deleteExpense(editedExpenseId);
+      navigation.goBack();
+    } catch (error) {
+      setError("Could not delete expense");
+      setIsFetching(false);
+    }
+
+ 
+   
   }
 
   function cancelHandler() {
@@ -40,22 +50,37 @@ const ManageExpense = ({ route, navigation }) => {
   }
 
   async function confirmHandler(expenseData) {
-    if (isEditing) {
-      setIsFetching(true);
-      expensesCtx.updateExpense(editedExpenseId, expenseData);
-      await updateExpense(editedExpenseId, expenseData);
-      setIsFetching(false)
-    } else {
-      setIsFetching(true);
-      const id = await storeExpenses(expenseData);
-      expensesCtx.addExpense({...expenseData, id: id});
+    try {
+      if (isEditing) {
+        setIsFetching(true);
+        expensesCtx.updateExpense(editedExpenseId, expenseData);
+        await updateExpense(editedExpenseId, expenseData);
+        setIsFetching(false);
+      } else {
+        setIsFetching(true);
+        const id = await storeExpenses(expenseData);
+        expensesCtx.addExpense({ ...expenseData, id: id });
+
+      }
+      navigation.goBack();
+      
+    } catch (error) {
+      setError('Could not save data - please try again')
       setIsFetching(false);
     }
-    navigation.goBack();
+
   }
 
-  if(isFetching) {
-    return  <Loading />
+  function errorHandler() {
+    setError(null);
+  }
+
+  if (error && !isFetching) {
+    return <ErrorOverlay message={error} onConfirm={errorHandler} />;
+  }
+
+  if (isFetching) {
+    return <Loading />;
   }
 
   return (
